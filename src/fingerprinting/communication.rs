@@ -4,12 +4,13 @@ use std::time::SystemTime;
 use std::error::Error;
 use std::time::Duration;
 use rand::seq::SliceRandom;
+use reqwest::Proxy;
 use uuid::Uuid;
 
 use crate::fingerprinting::signature_format::DecodedSignature;
 use crate::fingerprinting::user_agent::USER_AGENTS;
 
-pub fn recognize_song_from_signature(signature: &DecodedSignature) -> Result<Value, Box<dyn Error>>  {
+pub fn recognize_song_from_signature(signature: &DecodedSignature, proxy: Option<String>) -> Result<Value, Box<dyn Error>>  {
     
     let timestamp_ms = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?.as_millis();
     
@@ -38,7 +39,12 @@ pub fn recognize_song_from_signature(signature: &DecodedSignature) -> Result<Val
     headers.insert("User-Agent", USER_AGENTS.choose(&mut rand::thread_rng()).unwrap().parse()?);
     headers.insert("Content-Language", "en_US".parse()?);
 
-    let client = reqwest::blocking::Client::new();
+    let client = match proxy {
+        Some(proxy_str) => reqwest::blocking::Client::builder()
+            .proxy(Proxy::all(&proxy_str)?)
+            .build()?,
+        None => reqwest::blocking::Client::new(),
+    };
     let response = client.post(&url)
         .timeout(Duration::from_secs(20))
         .query(&[

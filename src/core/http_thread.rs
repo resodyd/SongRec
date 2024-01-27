@@ -10,7 +10,7 @@ use crate::fingerprinting::signature_format::DecodedSignature;
 use crate::fingerprinting::communication::{recognize_song_from_signature, obtain_raw_cover_image};
 
 fn try_recognize_song(signature: DecodedSignature) -> Result<SongRecognizedMessage, Box<dyn Error>> {
-    let json_object = recognize_song_from_signature(&signature)?;
+    let json_object = recognize_song_from_signature(&signature, None)?;
     
     let mut album_name: Option<String> = None;
     let mut release_year: Option<String> = None;

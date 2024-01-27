@@ -130,6 +130,13 @@ macro_rules! base_app {
                         .required(true)
                         .help(gettext("The audio file to recognize.").as_str())
                 )
+            .arg(
+                Arg::with_name("proxy")
+                .short("px")
+                .long("proxy")
+                .takes_value(true)
+                .required(false)
+            )
         )
         .subcommand(
             App::new("microphone-to-recognized-song")
@@ -236,8 +243,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             let subcommand_args = args.subcommand_matches("audio-file-to-recognized-song").unwrap();
             
             let input_file_string = subcommand_args.value_of("input_file").unwrap();
+
+            let proxy = subcommand_args.value_of("proxy").map(str::to_string);
             
-            println!("{}", serde_json::to_string_pretty(&recognize_song_from_signature(&SignatureGenerator::make_signature_from_file(input_file_string)?)?)?);
+            println!("{}", serde_json::to_string_pretty(&recognize_song_from_signature(&SignatureGenerator::make_signature_from_file(input_file_string)?, proxy)?)?);
         },
         Some("audio-file-to-fingerprint") => {
             let subcommand_args = args.subcommand_matches("audio-file-to-fingerprint").unwrap();
@@ -251,7 +260,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             
             let fingerprint_string = subcommand_args.value_of("fingerprint").unwrap();
             
-            println!("{}", serde_json::to_string_pretty(&recognize_song_from_signature(&DecodedSignature::decode_from_uri(fingerprint_string)?)?)?);
+            println!("{}", serde_json::to_string_pretty(&recognize_song_from_signature(&DecodedSignature::decode_from_uri(fingerprint_string)?, None)?)?);
         },
         Some("fingerprint-to-lure") => {
             let subcommand_args = args.subcommand_matches("fingerprint-to-lure").unwrap();
